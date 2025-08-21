@@ -1,0 +1,185 @@
+{% extends "layout.html" %}
+{% block title %}{{ course.title }}{% endblock %}
+
+{% block head_extra %}
+<style>
+    .course-hero {
+        padding: 4rem 1rem;
+        background-color: #2c3e50;
+        color: white;
+        text-align: center;
+        border-bottom: 5px solid #3498db;
+    }
+    .course-hero h1 { margin: 0; font-size: 2.8rem; }
+    .course-hero p { font-size: 1.2rem; color: #bdc3c7; margin-top: 0.5rem; }
+    .teacher-info { margin-top: 1rem; font-weight: bold; }
+    .video-playlist { max-width: 900px; margin: 3rem auto; padding: 0 1rem; }
+    .video-playlist h2 { text-align: center; margin-bottom: 2rem; font-size: 2rem; }
+    .video-item {
+        background-color: #ffffff;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    .video-item h3 { margin: 0 0 1rem 0; font-size: 1.5rem; color: #34495e; }
+    .no-videos { text-align: center; font-size: 1.2rem; color: #777; padding: 3rem; background-color: #f9f9f9; border-radius: 8px; }
+    .video-container { position: relative; width: 100%; }
+    .watermark {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        z-index: 10;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 14px;
+        font-weight: bold;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+        pointer-events: none;
+        direction: ltr;
+    }
+
+    /* --- [بداية] تخصيص ألوان مشغل Plyr لتناسب المنصة --- */
+    :root {
+        --plyr-color-main: #3498db; /* اللون الرئيسي للأزرار وشريط التقدم */
+    }
+    /* --- [نهاية] تخصيص ألوان مشغل Plyr --- */
+
+    body.dark-mode .course-hero { background-color: #1e1e1e; }
+    body.dark-mode .video-item { background-color: #1e1e1e; border-color: #333; }
+    body.dark-mode .video-item h3 { color: #ecf0f1; }
+    body.dark-mode .no-videos { background-color: #2c2c2c; color: #aaa; }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="course-hero">
+    <h1>{{ course.title }}</h1>
+    <p>{{ course.description or 'لا يوجد وصف متاح لهذا الكورس حاليًا.' }}</p>
+    <div class="teacher-info">
+        <span>مقدم الكورس: <strong>{{ course.teacher.name }}</strong></span>
+    </div>
+</section>
+
+<section class="video-playlist">
+    <h2>محتويات الكورس</h2>
+    {% for lesson in course.lessons|sort(attribute='order') %}
+    <div class="lesson-item">
+        <h3>{{ lesson.title }}</h3>
+        <ul class="lesson-contents">
+            {% for video in lesson.videos %}
+            <li><i class="bi bi-play-circle-fill"></i> {{ video.title }}</li>
+            {% endfor %}
+            {% for attachment in lesson.attachments %}
+            <li><a href="{{ attachment.file_url }}" target="_blank"><i class="bi bi-paperclip"></i> {{ attachment.title }}</a></li>
+            {% endfor %}
+            {% for exam in lesson.exams %}
+            <li><a href="{{ url_for('take_exam', exam_id=exam.id) }}"><i class="bi bi-card-checklist"></i> امتحان: {{ exam.title }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endfor %}
+</section>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flash-messages">
+        {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    
+    {% if course.videos %}
+        {% for video in course.videos %}
+        <div class="video-item">
+            <h3>{{ loop.index }}. {{ video.title }}</h3>
+            
+            {% if video.video_type == 'youtube' %}
+                <div class="plyr__video-embed js-player">
+                    <iframe
+                        src="https://www.youtube.com/embed/{{ video.youtube_video_id }}?origin=https://plyr.io&amp;iv_load_policy=3&amp;modestbranding=1&amp;playsinline=1&amp;showinfo=0&amp;rel=0&amp;enablejsapi=1"
+                        allowfullscreen
+                        allowtransparency
+                        allow="autoplay"
+                    ></iframe>
+                </div>
+            {% elif video.video_type == 'local' %}
+                <div class="video-container">
+                    <div class="watermark">
+                        {{ current_user.full_name }} - {{ current_user.phone }}
+                    </div>
+                    
+                    {# --- التعديل هنا: تم تبسيط وسم الفيديو ليتوافق مع Plyr --- #}
+                    <video class="js-player" playsinline controls>
+                        <source src="{{ video.video_url }}" type="video/mp4" />
+                    </video>
+                </div>
+            {% elif video.video_type == 'processing' %}
+                <div class="no-videos">
+                    <p>جاري معالجة هذا الفيديو... يرجى المحاولة مرة أخرى لاحقًا.</p>
+                </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="no-videos">
+            <p>لم يتم إضافة أي فيديوهات لهذا الكورس بعد.</p>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}
+
+{# --- [بداية] إضافة سكربت لتشغيل Plyr --- #}
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // إعدادات المشغل
+    const options = {
+      // تعطيل زر التحميل والنقر بزر الماوس الأيمن
+      controls: [
+        'play-large', 'play', 'progress', 'current-time', 'mute', 
+        'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'
+      ],
+      settings: ['captions', 'quality', 'speed', 'loop'],
+      i18n: {
+        // يمكنك ترجمة باقي الكلمات هنا إذا أردت
+        restart: 'إعادة',
+        rewind: 'ترجيع {seektime} ثواني',
+        play: 'تشغيل',
+        pause: 'إيقاف مؤقت',
+        fastForward: 'تقديم {seektime} ثواني',
+        seek: 'بحث',
+        seekLabel: '{currentTime} من {duration}',
+        played: 'تم تشغيله',
+        buffered: 'المحمل',
+        currentTime: 'الوقت الحالي',
+        duration: 'المدة',
+        volume: 'الصوت',
+        mute: 'كتم',
+        unmute: 'إلغاء الكتم',
+        enableCaptions: 'تفعيل الترجمة',
+        disableCaptions: 'إلغاء تفعيل الترجمة',
+        download: 'تحميل',
+        enterFullscreen: 'شاشة كاملة',
+        exitFullscreen: 'الخروج من الشاشة الكاملة',
+        settings: 'الإعدادات',
+        pip: 'صورة داخل صورة',
+        speed: 'السرعة',
+        normal: 'عادي',
+        quality: 'الجودة',
+        loop: 'تكرار',
+        start: 'بدء',
+        end: 'نهاية',
+        all: 'الكل',
+        reset: 'إعادة تعيين'
+      }
+    };
+
+    // تطبيق المشغل على كل الفيديوهات في الصفحة
+    const players = Array.from(document.querySelectorAll('.js-player')).map(p => new Plyr(p, options));
+  });
+</script>
+{% endblock %}
+{# --- [نهاية] إضافة سكربت لتشغيل Plyr --- #}

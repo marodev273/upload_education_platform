@@ -1,0 +1,26 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+  <div class="container" style="margin-top: 50px; text-align: center;">
+    <h2>اختر طريقة رفع الفيديو</h2>
+    <p class="lead">يمكنك رفع فيديو مباشرة إلى خادم الموقع، أو رفعه إلى قناتك على يوتيوب ثم ربطه بالكورس.</p>
+    <hr>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="well">
+                <h3><i class="fa fa-youtube-play"></i> رفع إلى يوتيوب</h3>
+                <p>يتم رفع الفيديو إلى يوتيوب ويبقى غير مدرج (Unlisted).</p>
+                <a href="{{ url_for('video_creator.youtube_upload') }}" class="btn btn-danger btn-lg">اذهب إلى رفع يوتيوب</a>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="well">
+                <h3><i class="fa fa-upload"></i> رفع ملف مباشر</h3>
+                <p>يتم رفع الفيديو مباشرة إلى خادم المنصة.</p>
+                <a href="{{ url_for('video_creator.local_upload') }}" class="btn btn-primary btn-lg">اذهب إلى الرفع المباشر</a>
+            </div>
+        </div>
+    </div>
+    {# --- تم التصحيح هنا --- #}
+    <a href="{{ url_for('video.index_view') }}" class="btn btn-default" style="margin-top: 20px;">العودة إلى القائمة</a>
+  </div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends 'admin/model/list.html' %}
+
+{# هذا الجزء يقوم بإعادة تعريف شريط الأزرار العلوي بالكامل #}
+{% block model_menu_bar %}
+  <ul class="nav nav-tabs">
+    {# زر "List" يبقى كما هو #}
+    <li class="active">
+      <a href="{{ get_url('.index_view', url=return_url, page=page, sort=sort_column, sort_desc=sort_desc, search=search, filters=filters) }}">{{ _gettext('List') }}</a>
+    </li>
+
+    {# هذا هو الزر المخصص الجديد الذي يشير مباشرة إلى صفحة الاختيار الصحيحة #}
+    <li>
+      <a href="{{ url_for('video_uploader.index') }}">{{ _gettext('Create') }}</a>
+    </li>
+  </ul>
+{% endblock %}

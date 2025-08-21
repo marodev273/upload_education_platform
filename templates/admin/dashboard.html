@@ -1,0 +1,120 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+  {{ super() }}
+
+  <style>
+    /* ... ( نفس كود الـ CSS بدون تغيير ) ... */
+    .stats-card { background-color: #ffffff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); text-align: center; margin-bottom: 20px; }
+    .stats-card .icon { font-size: 3rem; margin-bottom: 15px; }
+    .stats-card h3 { font-size: 2.5rem; margin: 0; color: #2c3e50; }
+    .stats-card p { font-size: 1.1rem; color: #7f8c8d; margin: 5px 0 0 0; }
+    .chart-container { background-color: #ffffff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+    body.dark-mode .stats-card, body.dark-mode .chart-container { background-color: #2c3e50; }
+    body.dark-mode .stats-card h3 { color: #ffffff; }
+    body.dark-mode .stats-card p { color: #bdc3c7; }
+  </style>
+
+  <div class="container" style="margin-top: 20px;">
+    <h1>لوحة المعلومات الرئيسية</h1>
+    <p class="lead">نظرة سريعة على إحصائيات المنصة الحالية.</p>
+
+    <div class="row">
+      <div class="col-md-4">
+        <div class="stats-card">
+          <div class="icon">👥</div>
+          <h3>{{ user_count }}</h3>
+          <p>طالب مسجل</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stats-card">
+          <div class="icon">👨‍🏫</div>
+          <h3>{{ teacher_count }}</h3>
+          <p>مدرس مسجل</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stats-card">
+          <div class="icon">📚</div>
+          <h3>{{ course_count }}</h3>
+          <p>كورس متاح</p>
+        </div>
+      </div>
+    </div>
+    
+    {% if grade_labels and grade_data %}
+    <div class="row" style="margin-top: 20px;">
+        <div class="col-xs-12">
+            <div class="chart-container">
+                <h3 style="text-align: center; margin-bottom: 20px;">توزيع الطلاب على الصفوف الدراسية</h3>
+                <canvas id="gradeChart" 
+                        data-labels='{{ grade_labels|tojson }}' 
+                        data-values='{{ grade_data|tojson }}'>
+                </canvas>
+                </div>
+        </div>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if grade_labels and grade_data %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chartCanvas = document.getElementById('gradeChart');
+        const ctx = chartCanvas.getContext('2d');
+        
+        // --- نقرأ البيانات من الـ attributes ونحولها إلى JSON ---
+        const gradeLabels = JSON.parse(chartCanvas.dataset.labels);
+        const gradeData = JSON.parse(chartCanvas.dataset.values);
+        const isDarkMode = document.body.classList.contains('dark-mode');
+
+        const gradeChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: gradeLabels,
+                datasets: [{
+                    label: 'عدد الطلاب',
+                    data: gradeData,
+                    backgroundColor: 'rgba(52, 152, 219, 0.5)',
+                    borderColor: 'rgba(52, 152, 219, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            color: isDarkMode ? '#ffffff' : '#666'
+                        },
+                        grid: {
+                            color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: isDarkMode ? '#ffffff' : '#666'
+                        },
+                        grid: {
+                            color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: isDarkMode ? '#ffffff' : '#666'
+                        }
+                    }
+                }
+            }
+        });
+    });
+  </script>
+  {% endif %}
+
+{% endblock %}

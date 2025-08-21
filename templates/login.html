@@ -1,0 +1,66 @@
+{% extends "layout.html" %}
+{% block title %}تسجيل الدخول{% endblock %}
+
+{% block head_extra %}
+<style>
+    .auth-container { max-width: 450px; margin: 5rem auto; padding: 2rem 2.5rem; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    .auth-container h1 { color: #2c3e50; text-align: center; margin-bottom: 2rem; }
+    .form-group { margin-bottom: 1.5rem; text-align: right; }
+    .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+    .form-group input { width: 100%; padding: 0.8rem; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+    .submit-btn { width: 100%; padding: 1rem; background-color: #3498db; color: white; border: none; border-radius: 5px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background-color 0.3s; margin-top: 1.5rem; }
+    .submit-btn:hover { background-color: #2980b9; }
+    .register-link { text-align: center; margin-top: 1.5rem; }
+    .register-link a { color: #3498db; text-decoration: none; font-weight: 600; }
+    .flash-messages { list-style: none; padding: 0; margin-bottom: 1rem; }
+    .flash-messages li { padding: 1rem; border-radius: 5px; text-align: center; font-weight: bold; }
+    .flash-messages .error { background-color: #f8d7da; color: #721c24; }
+    .flash-messages .info { background-color: #d1ecf1; color: #0c5460; }
+    .flash-messages .success { background-color: #d4edda; color: #155724; }
+    
+    /* تنسيق خاص لمربع تذكرني */
+    .form-group-inline {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .form-group-inline label {
+        margin-bottom: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h1>تسجيل الدخول</h1>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flash-messages">
+        {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('login') }}">
+        <div class="form-group">
+            <label for="phone">رقم الهاتف</label>
+            <input type="tel" id="phone" name="phone" required>
+        </div>
+        <div class="form-group">
+            <label for="password">كلمة السر</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <div class="form-group-inline">
+            <input type="checkbox" id="remember" name="remember" style="width: auto;">
+            <label for="remember">تذكرني</label>
+        </div>
+        <button type="submit" class="submit-btn">دخول</button>
+    </form>
+    <div class="register-link">
+        <p>ليس لديك حساب؟ <a href="{{ url_for('register') }}">إنشاء حساب جديد</a></p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+{% block title %}شراء كورس: {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="auth-container" style="max-width: 700px; margin-top: 2rem;">
+        <h1>شراء كورس: {{ course.title }}</h1>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul class="flash-messages" style="padding: 0; list-style-type: none;">
+            {% for category, message in messages %}
+              <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+
+        <div class="purchase-instructions">
+            <h3>تعليمات الدفع</h3>
+            <p>سعر الكورس: <strong>{{ course.price }} جنيه مصري</strong></p>
+            <p>للاشتراك في الكورس، يرجى تحويل المبلغ المطلوب عبر خدمة **فودافون كاش** إلى الرقم التالي:</p>
+            <p class="phone-number">01012345678</p> <p>بعد التحويل، يرجى أخذ لقطة شاشة (Screenshot) للإيصال ثم رفعها في الحقل أدناه.</ سيتم مراجعة طلبك وتفعيل الكورس في حسابك خلال 24 ساعة.</p>
+        </div>
+
+        <hr style="margin: 2rem 0;">
+
+        <form method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="receipt">رفع صورة الإيصال</label>
+                <input type="file" id="receipt" name="receipt" class="form-control-file" required>
+            </div>
+
+            <button type="submit" class="submit-btn save-btn">إرسال طلب الشراء</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

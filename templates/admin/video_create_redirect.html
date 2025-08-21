@@ -1,0 +1,10 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+  <div class="container" style="margin-top: 50px; text-align: center;">
+    <p class="lead">يتم الآن توجيهك إلى صفحة رفع الفيديوهات على يوتيوب...</p>
+    <i class="fa fa-spinner fa-spin fa-3x"></i>
+  </div>
+  <script>
+    window.location.href = "{{ url_for('youtube_upload') }}";
+  </script>
+{% endblock %}

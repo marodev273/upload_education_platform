@@ -1,0 +1,99 @@
+{% extends "layout.html" %}
+{% block title %}صفحتي الشخصية{% endblock %}
+
+{% block head_extra %}
+<style>
+    /* تصميم مخصص لزر تسجيل الخروج */
+    .logout-section {
+        text-align: center;
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid #e0e0e0;
+    }
+    .logout-btn {
+        display: inline-block;
+        padding: 0.8rem 2.5rem;
+        background-color: #e74c3c; /* لون أحمر */
+        color: white;
+        text-decoration: none;
+        font-weight: bold;
+        border-radius: 8px;
+        transition: background-color 0.3s ease;
+    }
+    .logout-btn:hover {
+        background-color: #c0392b; /* لون أحمر أغمق عند المرور عليه */
+    }
+    body.dark-mode .logout-section {
+        border-top-color: #333;
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>أهلاً بعودتك، {{ current_user.full_name.split(' ')[0] }}!</h1>
+        <p>لوحة التحكم الخاصة بك للوصول السريع لكل ما تحتاجه.</p>
+    </div>
+
+    <div class="my-courses-section">
+        <h2>كورساتي المسجلة</h2>
+        <div class="suggested-courses-grid">
+            {% if courses and courses|length > 0 %}
+                {% for course in courses %}
+                    <div class="pro-course-card">
+                        <div class="card-image">
+                            <img src="{{ course.thumbnail }}" alt="{{ course.title }}">
+                        </div>
+                        <div class="card-content">
+                            <h3>{{ course.title }}</h3>
+                            <p class="card-description">{{ course.grade }}{% if course.branch %} - {{ course.branch }}{% endif %}</p>
+                            <a href="{{ url_for('course_details', course_id=course.id) }}" class="enroll-btn view-btn">ادخل إلى الكورس</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="not-enrolled-message" style="grid-column: 1 / -1;">
+                    <p>أنت لم تشترك في أي كورس بعد. <a href="{{ url_for('list_courses') }}">تصفح الكورسات</a>.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="dashboard-grid" style="margin-top: 3rem; border-top: 1px solid #e0e0e0; padding-top: 3rem;">
+        <div class="dashboard-card info-card">
+            <div class="card-header">
+                <h3>ملفك الشخصي</h3>
+            </div>
+            <div class="card-body">
+                <ul>
+                    <li><strong>الاسم الكامل:</strong> {{ current_user.full_name }}</li>
+                    <li><strong>الصف الدراسي:</strong> {{ current_user.grade }}</li>
+                    {% if current_user.branch %}
+                    <li><strong>الشعبة:</strong> {{ current_user.branch }}</li>
+                    {% endif %}
+                    <li><strong>المحافظة:</strong> {{ current_user.governorate }}</li>
+                    <li><strong>رقم الهاتف:</strong> {{ current_user.phone }}</li>
+                </ul>
+            </div>
+        </div>
+        
+        <a href="{{ url_for('exam_results') }}" class="dashboard-card action-card">
+            <div class="action-icon">📝</div>
+            <h3>امتحاناتي</h3>
+            <p>اعرض نتائجك وامتحاناتك السابقة</p>
+        </a>
+        
+        <a href="{{ url_for('edit_profile') }}" class="dashboard-card action-card">
+            <div class="action-icon">⚙️</div>
+            <h3>الإعدادات</h3>
+            <p>عدّل بياناتك الشخصية</p>
+        </a>
+    </div>
+
+    <div class="logout-section">
+        <a href="{{ url_for('logout') }}" class="logout-btn">تسجيل الخروج</a>
+    </div>
+    </div>
+{% endblock %}

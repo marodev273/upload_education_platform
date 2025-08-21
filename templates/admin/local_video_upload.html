@@ -1,0 +1,200 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+  <div class="container" style="margin-top: 20px;">
+    <h2>رفع فيديو مباشر إلى الخادم</h2>
+    
+    <div id="upload-alert" style="display: none;" class="alert"></div>
+
+    <form id="upload-form">
+      <div class="form-group">
+        <label for="course_id">اختر الكورس</label>
+        <select name="course_id" id="course_id" class="form-control" required>
+          {% for course in courses %}
+            <option value="{{ course.id }}">{{ course.title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="title">عنوان الفيديو</label>
+        <input type="text" name="title" id="title" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label>طريقة الرفع</label>
+        <div class="radio">
+          <label><input type="radio" name="upload_type" value="new" checked> رفع ملف جديد</label>
+        </div>
+        <div class="radio">
+          <label><input type="radio" name="upload_type" value="existing"> استخدام ملف موجود من Cloudinary</label>
+        </div>
+      </div>
+      
+      <div id="new-file-container" class="form-group">
+        <label for="video_file">اختر ملف الفيديو</label>
+        <input type="file" name="video_file" id="video_file">
+      </div>
+
+      <div id="existing-file-container" class="form-group" style="display: none;">
+        <label for="public_id">أدخل الـ Public ID للفيديو</label>
+        <input type="text" name="public_id" id="public_id" class="form-control" placeholder="e.g., videos/j3g9wz8xztpcan8f2ktf">
+      </div>
+      <div id="progress-container" style="display: none; margin-top: 15px;">
+          <div class="progress">
+              <div id="progress-bar" class="progress-bar progress-bar-striped active" role="progressbar" style="width: 0%;">
+                  <span id="progress-text">0%</span>
+              </div>
+          </div>
+          <p id="status-text" style="text-align: center; margin-top: 5px;"></p>
+      </div>
+
+      <button type="submit" id="submit-btn" class="btn btn-success" style="margin-top: 15px;">
+        <i class="fa fa-upload"></i> حفظ الفيديو
+      </button>
+    </form>
+    
+    {# --- تم التصحيح هنا --- #}
+    <a href="{{ url_for('video.index_view') }}" class="btn btn-default" style="margin-top: 20px;">العودة</a>
+  </div>
+{% endblock %}
+
+{% block tail %}
+    {{ super() }}
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('upload-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const progressContainer = document.getElementById('progress-container');
+        const progressText = document.getElementById('progress-text');
+        const statusText = document.getElementById('status-text');
+        const uploadAlert = document.getElementById('upload-alert');
+
+        const newFileContainer = document.getElementById('new-file-container');
+        const existingFileContainer = document.getElementById('existing-file-container');
+        const videoFileInput = document.getElementById('video_file');
+        const publicIdInput = document.getElementById('public_id');
+
+        document.querySelectorAll('input[name="upload_type"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'new') {
+                    newFileContainer.style.display = 'block';
+                    existingFileContainer.style.display = 'none';
+                    videoFileInput.required = true;
+                    publicIdInput.required = false;
+                } else {
+                    newFileContainer.style.display = 'none';
+                    existingFileContainer.style.display = 'block';
+                    videoFileInput.required = false;
+                    publicIdInput.required = true;
+                }
+            });
+        });
+
+        form.addEventListener('submit', function(e) {
+          e.preventDefault();
+
+          const formData = new FormData(form);
+          const uploadType = formData.get('upload_type');
+
+          if (uploadType === 'new' && !formData.get('video_file').name) {
+              showAlert('الرجاء اختيار ملف فيديو أولاً.', 'danger');
+              return;
+          }
+           if (uploadType === 'existing' && !formData.get('public_id')) {
+              showAlert('الرجاء إدخال Public ID.', 'danger');
+              return;
+          }
+
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> جاري الحفظ...';
+          
+          if(uploadType === 'new'){
+            progressContainer.style.display = 'block';
+            updateProgress(0, 'بدء الاتصال بالخادم...');
+          }
+
+          fetch('{{ url_for("video_creator.api_upload_video") }}', {
+            method: 'POST',
+            body: formData
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+                if (data.is_existing) {
+                    showAlert('تم ربط الفيديو الموجود بنجاح!', 'success');
+                    setTimeout(() => {
+                        window.location.href = '{{ url_for("video.index_view") }}';
+                    }, 1500);
+                } else {
+                    pollStatus(data.task_id);
+                }
+            } else {
+              throw new Error(data.message || 'فشل في بدء المهمة.');
+            }
+          })
+          .catch(error => {
+            resetUIOnError('خطأ: ' + error.message);
+          });
+        });
+        
+        function pollStatus(taskId) {
+          const interval = setInterval(function() {
+            fetch(`/admin/video_creator/api/upload_status/${taskId}`)
+              .then(response => response.json())
+              .then(status => {
+                updateProgress(status.progress || 0, status.status || getStatusMessage(status.state));
+
+                if (status.state === 'SUCCESS') {
+                  clearInterval(interval);
+                  handleSuccess();
+                } else if (status.state === 'FAILURE') {
+                  clearInterval(interval);
+                  resetUIOnError('فشل الرفع: ' + (status.message || 'خطأ غير معروف.'));
+                }
+              })
+              .catch(error => {
+                clearInterval(interval);
+                resetUIOnError('فشل في تتبع حالة الرفع.');
+              });
+          }, 2000);
+        }
+
+        function updateProgress(percentage, text) {
+            progressBar.style.width = percentage + '%';
+            progressText.innerText = percentage + '%';
+            statusText.innerText = text;
+        }
+
+        function getStatusMessage(state) {
+            switch(state) {
+                case 'PENDING': return 'المهمة في قائمة الانتظار...';
+                case 'PROGRESS': return 'جاري الرفع إلى السحابة...';
+                case 'SUCCESS': return 'اكتمل الرفع بنجاح!';
+                default: return 'جاري المعالجة...';
+            }
+        }
+
+        function handleSuccess() {
+            showAlert('تم رفع الفيديو بنجاح!', 'success');
+            progressBar.classList.remove('active');
+            progressBar.classList.add('progress-bar-success');
+            setTimeout(() => {
+              window.location.href = '{{ url_for("video.index_view") }}';
+            }, 1500);
+        }
+        
+        function resetUIOnError(message) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa fa-upload"></i> حفظ الفيديو';
+            showAlert(message, 'danger');
+            progressBar.classList.add('progress-bar-danger');
+        }
+
+        function showAlert(message, type) {
+            uploadAlert.className = 'alert alert-' + type;
+            uploadAlert.innerText = message;
+            uploadAlert.style.display = 'block';
+        }
+      });
+    </script>
+{% endblock %}

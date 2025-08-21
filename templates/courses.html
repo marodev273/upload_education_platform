@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+{% block title %}
+    {% if selected_grade %}
+        كورسات {{ selected_grade }}
+    {% else %}
+        كل الكورسات
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        {% if selected_grade %}
+            <h1>كورسات {{ selected_grade }}</h1>
+            <a href="{{ url_for('list_courses') }}" style="text-decoration: none; color: #3498db; margin-top: 1rem; display: inline-block;">← عرض كل الكورسات</a>
+        {% else %}
+            <h1>جميع الكورسات المتاحة</h1>
+        {% endif %}
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flash-messages">
+        {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    
+    <div class="courses-page-grid">
+        {% if courses %}
+            {% for course in courses %}
+            <div class="pro-course-card">
+                <div class="card-image">
+                    <img src="{{ course.thumbnail }}" alt="{{ course.title }}">
+                </div>
+                <div class="card-content">
+                    <h3>{{ course.title }}</h3>
+                    <p class="card-description">{{ course.grade }}{% if course.branch %} - {{ course.branch }}{% endif %}</p>
+                    
+                    {# --- [بداية] الإصلاح --- #}
+                    {% if course in current_user.enrolled_courses %}
+                        <a href="{{ url_for('course_details', course_id=course.id) }}" class="enroll-btn view-btn">ادخل إلى الكورس</a>
+                    {% elif course.is_paid %}
+                        <a href="{{ url_for('purchase_course', course_id=course.id) }}" class="enroll-btn">شراء الكورس</a>
+                    {% else %}
+                        <form action="{{ url_for('enroll', course_id=course.id) }}" method="POST" style="margin: 0;">
+                            <button type="submit" class="enroll-btn view-btn">اشترك مجاناً</button>
+                        </form>
+                    {% endif %}
+                    {# --- [نهاية] الإصلاح --- #}
+                </div>
+                <div class="card-footer">
+                    <span class="footer-item">
+                        {% if course.is_paid %}
+                            {{ course.price }} جنيه
+                        {% else %}
+                            <strong>مجاني</strong>
+                        {% endif %}
+                    </span>
+                    <span class="footer-item">
+                        +{{ course.enrolled_users|length }} طالب
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="not-enrolled-message" style="grid-column: 1 / -1; text-align: center; padding: 2rem;">
+                <p>لا توجد كورسات متاحة حاليًا تطابق هذا البحث.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

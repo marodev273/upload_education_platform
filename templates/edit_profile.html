@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+{% block title %}تعديل الملف الشخصي{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="auth-container" style="margin-top: 2rem;">
+        <h1>تعديل الملف الشخصي</h1>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul class="flash-messages" style="padding: 0; list-style-type: none;">
+            {% for category, message in messages %}
+              <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('edit_profile') }}">
+            <div class="form-group">
+                <label for="full_name">الاسم الثلاثي</label>
+                <input type="text" id="full_name" name="full_name" value="{{ current_user.full_name }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="parent_phone">رقم هاتف ولي الأمر</label>
+                <input type="tel" id="parent_phone" name="parent_phone" value="{{ current_user.parent_phone }}" required>
+            </div>
+            
+            <div class="form-divider">
+                <span>بيانات أساسية (غير قابلة للتعديل)</span>
+            </div>
+            
+            <div class="form-group">
+                <label>رقم الهاتف</label>
+                <input type="tel" value="{{ current_user.phone }}" disabled>
+            </div>
+            <div class="form-group">
+                <label>الصف الدراسي</label>
+                <input type="text" value="{{ current_user.grade }}" disabled>
+            </div>
+             {% if current_user.branch %}
+            <div class="form-group">
+                <label>الشعبة</label>
+                <input type="text" value="{{ current_user.branch }}" disabled>
+            </div>
+            {% endif %}
+
+            <button type="submit" class="submit-btn save-btn">حفظ التغييرات</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

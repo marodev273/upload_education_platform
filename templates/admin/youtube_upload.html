@@ -1,0 +1,68 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+  {{ super() }}
+  <div class="container" style="margin-top: 20px;">
+    <h2>رفع فيديو جديد إلى يوتيوب</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% if not credentials %}
+      <div class="alert alert-warning">
+        <h4><i class="fa fa-exclamation-triangle"></i> خطوة مطلوبة</h4>
+        <p>
+          يجب عليك السماح للتطبيق بالوصول إلى حسابك في يوتيوب لرفع الفيديوهات.
+          هذه الخطوة مطلوبة مرة واحدة فقط.
+        </p>
+        {# --- يوجد خطأ محتمل هنا إذا لم تكن دالة authorize موجودة، لكن الرابط أدناه صحيح --- #}
+        <a href="{{ url_for('video_creator.authorize') }}" class="btn btn-primary">
+          <i class="fa fa-google"></i> السماح بالوصول عبر جوجل
+        </a>
+      </div>
+    {% else %}
+      <div class="alert alert-success">
+        <h4><i class="fa fa-check-circle"></i> تم الربط بنجاح</h4>
+        <p>التطبيق متصل بحساب جوجل الخاص بك وجاهز لرفع الفيديوهات.</p>
+      </div>
+
+      <hr>
+
+      <h3>نموذج رفع الفيديو</h3>
+      <form method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="course_id">اختر الكورس</label>
+          <select name="course_id" id="course_id" class="form-control" required>
+            {% for course in courses %}
+              <option value="{{ course.id }}">{{ course.title }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="title">عنوان الفيديو</label>
+          <input type="text" name="title" id="title" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="description">وصف الفيديو (اختياري)</label>
+          <textarea name="description" id="description" class="form-control" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="video_file">اختر ملف الفيديو</label>
+          <input type="file" name="video_file" id="video_file" required>
+          <p class="help-block">اختر ملف فيديو من جهازك (mp4, mov, avi, etc.)</p>
+        </div>
+        <button type="submit" class="btn btn-success">
+          <i class="fa fa-upload"></i> ابدأ الرفع الآن
+        </button>
+      </form>
+    {% endif %}
+    
+    {# --- تم التصحيح هنا --- #}
+    <a href="{{ url_for('video.index_view') }}" class="btn btn-default" style="margin-top: 20px;">العودة إلى قائمة الفيديوهات</a>
+  </div>
+{% endblock %}

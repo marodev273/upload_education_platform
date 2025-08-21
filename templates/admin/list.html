@@ -1,0 +1,98 @@
+<!-- {% extends 'admin/master.html' %}
+{% import 'admin/lib.html' as lib with context %}
+{% from 'admin/lib.html' import extra_js with context %}
+
+{% block body %}
+  <h1>{{ admin_view.name }}</h1>
+
+  {# --- شريط الأدوات: البحث والإجراءات --- #}
+  <div class="row mb-3">
+    <div class="col-md-6">
+      {% if search_supported %}
+        <form method="GET" action="{{ sort_url(None, None, search=None, filters=None) }}" class="d-flex">
+          <input type="text" name="search" class="form-control me-2" value="{{ search or '' }}" placeholder="{{ _gettext('Search') }}">
+          <button type="submit" class="btn btn-primary">{{ _gettext('Search') }}</button>
+        </form>
+      {% endif %}
+    </div>
+    <div class="col-md-6 text-end">
+        {% if admin_view.can_create %}
+        <a href="{{ get_url('.create_view', url=return_url) }}" class="btn btn-success">
+            <i class="bi bi-plus-circle-fill me-1"></i> {{ _gettext('Create') }}
+        </a>
+        {% endif %}
+    </div>
+  </div>
+
+  {# --- عرض البيانات في جدول --- #}
+  <div class="table-responsive">
+    <table class="table table-striped table-bordered table-hover">
+      <thead class="table-dark">
+        <tr>
+          {% block list_header scoped %}
+            {% for c, name in list_columns %}
+              <th class="column-header col-{{c}}">
+                {% if admin_view.is_sortable(c) %}
+                  <a href="{{ sort_url(c) }}">
+                    {{ name }}
+                    {% if sort_column == c %}
+                      <i class="bi bi-chevron-{{'up' if sort_desc else 'down'}}"></i>
+                    {% endif %}
+                  </a>
+                {% else %}
+                  {{ name }}
+                {% endif %}
+              </th>
+            {% endfor %}
+          {% endblock %}
+        </tr>
+      </thead>
+      <tbody>
+      {% for row in data %}
+        <tr>
+          {% block list_row scoped %}
+            {% for c, name in list_columns %}
+              <td class="col-{{c}}">
+                {% if admin_view.can_edit %}
+                  <a href="{{ get_url('.edit_view', id=get_pk_value(row), url=return_url) }}">
+                    {{ get_value(row, c) }}
+                  </a>
+                {% else %}
+                    {{ get_value(row, c) }}
+                {% endif %}
+              </td>
+            {% endfor %}
+          {% endblock %}
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="{{ list_columns|length }}">
+             <p class="text-center text-muted mt-3">{{ _gettext('No items found.') }}</p>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {# --- الترقيم والعدد --- #}
+  {% if page_size %}
+  <div class="row">
+    <div class="col-md-6">
+      <p class="text-muted">
+        {# --- تم التصحيح هنا: استخدام _get_record_count_text بدلاً من get_record_count_text --- #}
+        {{ lib._get_record_count_text(count, page, page_size) }}
+      </p>
+    </div>
+    <div class="col-md-6">
+      {{ lib.pager(page, num_pages, pager_url) }}
+    </div>
+  </div>
+  {% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+    {{ super() }}
+    {{ extra_js }}
+{% endblock %} -->

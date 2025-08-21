@@ -1,0 +1,115 @@
+{% extends 'admin/base.html' %}
+
+{% block head_css %}
+  {{ super() }}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+{% endblock %}
+
+{% block head_tail %}
+  {{ super() }}
+  <style>
+    :root {
+      --primary-color: #4a56e2;
+      --sidebar-bg: #212529;
+      --sidebar-text: rgba(255, 255, 255, 0.7);
+      --sidebar-text-hover: #ffffff;
+      --content-bg: #f4f7f6;
+    }
+    body { background-color: var(--content-bg); }
+    .navbar-brand { color: var(--sidebar-text-hover) !important; font-weight: bold; }
+    #sidebar { background-color: var(--sidebar-bg); }
+    #sidebar .nav-link {
+      color: var(--sidebar-text);
+      font-size: 0.95rem; /* تصغير الخط قليلاً */
+      padding: 10px 20px; /* تعديل الحشو */
+      border-right: 3px solid transparent;
+      display: flex;
+      align-items: center;
+    }
+    #sidebar .nav-link i { margin-left: 12px; font-size: 1.1rem; width: 20px; text-align: center;}
+    #sidebar .nav-link.active, #sidebar .nav-link:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+      color: var(--sidebar-text-hover);
+      border-right-color: var(--primary-color);
+    }
+    main { padding: 2rem; }
+    .sidebar-category {
+        padding: 10px 20px;
+        color: #6c757d; /* لون رمادي للفئة */
+        font-size: 0.8rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-top: 1rem;
+    }
+  </style>
+{% endblock %}
+
+{% block page_body %}
+<div class="container-fluid" style="padding: 0;">
+    <div class="row g-0">
+        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+            <div class="position-sticky pt-3">
+                <h5 class="text-white text-center my-3">{{ admin_view.name }}</h5>
+                <ul class="nav flex-column">
+                    
+                    {# --- تم التصحيح هنا: منطق جديد للتعامل مع الفئات --- #}
+                    {% for item in admin_view.admin._menu %}
+                        {% if item.is_category() %}
+                            <li class="sidebar-category">{{ item.name }}</li>
+                            {% for child in item.get_children() %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if child.is_active(admin_view) %}active{% endif %}" href="{{ child.get_url() }}">
+                                    {% if child.name == "المستخدمون" %}<i class="bi bi-people-fill"></i>{% endif %}
+                                    {% if child.name == "المدرسون" %}<i class="bi bi-person-video3"></i>{% endif %}
+                                    {% if child.name == "الكورسات" %}<i class="bi bi-journal-bookmark-fill"></i>{% endif %}
+                                    {% if child.name == "طلبات الشراء" %}<i class="bi bi-cart-check-fill"></i>{% endif %}
+                                    {% if child.name == "إدارة الفيديوهات" %}<i class="bi bi-film"></i>{% endif %}
+                                    {% if child.name == "إضافة فيديو جديد" %}<i class="bi bi-plus-circle-fill"></i>{% endif %}
+                                    {% if child.name == "تفاعل الطلاب" %}<i class="bi bi-person-hearts"></i>{% endif %}
+                                    {% if child.name == "تتبع الصفحات" %}<i class="bi bi-file-earmark-bar-graph-fill"></i>{% endif %}
+                                    {{ child.name }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        {% else %}
+                            {# هذا للروابط التي ليست ضمن فئة مثل "الرئيسية" #}
+                            <li class="nav-item">
+                                <a class="nav-link {% if item.is_active(admin_view) %}active{% endif %}" href="{{ item.get_url() }}">
+                                   <i class="bi bi-house-door-fill"></i> {{ item.name }}
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                </ul>
+            </div>
+        </nav>
+
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+             <nav class="navbar navbar-expand-lg navbar-light bg-light rounded mb-4">
+                <div class="container-fluid">
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="navbar-nav ms-auto">
+                        <a class="nav-link" href="{{ url_for('home') }}" target="_blank">
+                            <i class="bi bi-box-arrow-up-right"></i> عرض الموقع
+                        </a>
+                        <a class="nav-link" href="{{ url_for('logout') }}">
+                            <i class="bi bi-box-arrow-right"></i> تسجيل الخروج
+                        </a>
+                    </div>
+                </div>
+            </nav>
+            
+            {% block body %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block tail_js %}
+  {{ super() }}
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends "layout.html" %}
+{% block title %}إنشاء حساب{% endblock %}
+
+{% block head_extra %}
+    <style>
+        .auth-container { max-width: 500px; margin: 3rem auto; padding: 2rem; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .auth-container h1 { color: #2c3e50; text-align: center; margin-bottom: 2rem; }
+        .form-group { margin-bottom: 1.2rem; text-align: right; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+        .form-group input, .form-group select { width: 100%; padding: 0.8rem; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; transition: border-color 0.3s; }
+        .submit-btn { width: 100%; padding: 1rem; background-color: #3498db; color: white; border: none; border-radius: 5px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background-color 0.3s; margin-top: 1rem; }
+        .submit-btn:hover { background-color: #2980b9; }
+        .register-link { text-align: center; margin-top: 1.5rem; }
+        .register-link a { color: #3498db; text-decoration: none; font-weight: 600; }
+        .flash-messages { list-style: none; padding: 0; margin-bottom: 1rem; }
+        .flash-messages li { padding: 1rem; border-radius: 5px; text-align: center; font-weight: bold; }
+        .password-wrapper { position: relative; }
+        .password-wrapper .toggle-password { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #777; }
+        .input-error input, .input-error select { border-color: #e74c3c; border-width: 2px; }
+        .flash-messages .error { background-color: #f8d7da; color: #721c24; }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h1>إنشاء حساب</h1>
+    
+    {% set error_field = namespace(name=None) %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flash-messages">
+        {% for category, message in messages %}
+          {% if category.startswith('error') %}
+            <li class="error">{{ message }}</li>
+            {% set error_field.name = category.split('error_')[1] %}
+          {% endif %}
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <div id="page-data" data-error-field="{{ error_field.name or '' }}" hidden></div>
+
+    <form method="POST" action="{{ url_for('register') }}">
+        <div class="form-group" id="full_name-group">
+            <label for="full_name">الاسم الثلاثي</label>
+            <input type="text" id="full_name" name="full_name" value="{{ form_data.get('full_name', '') }}" required>
+        </div>
+        <div class="form-group" id="phone-group">
+            <label for="phone">رقم الهاتف</label>
+            <input type="tel" id="phone" name="phone" value="{{ form_data.get('phone', '') }}" required>
+        </div>
+        <div class="form-group" id="parent_phone-group">
+            <label for="parent_phone">رقم هاتف ولي الأمر</label>
+            <input type="tel" id="parent_phone" name="parent_phone" value="{{ form_data.get('parent_phone', '') }}" required>
+        </div>
+        <div class="form-group" id="governorate-group">
+            <label for="governorate">المحافظة</label>
+            <select id="governorate" name="governorate" required>
+                <option value="" {% if not form_data.get('governorate') %}selected{% endif %} disabled>اختر المحافظة</option>
+                {% set governorates = ['القاهرة', 'الجيزة', 'الإسكندرية', 'الشرقية', 'الدقهلية', 'المنوفية', 'القليوبية', 'الغربية', 'كفر الشيخ', 'البحيرة', 'الفيوم', 'بني سويف', 'المنيا', 'أسيوط', 'سوهاج', 'قنا', 'الأقصر', 'أسوان', 'الوادي الجديد', 'مطروح', 'شمال سيناء', 'جنوب سيناء', 'بورسعيد', 'السويس', 'الإسماعيلية', 'البحر الأحمر', 'دمياط'] %}
+                {% for gov in governorates %}
+                <option value="{{ gov }}" {% if form_data.get('governorate') == gov %}selected{% endif %}>{{ gov }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group" id="grade-group">
+            <label for="grade">الصف</label>
+             <select id="grade-select-register" name="grade" required>
+                <option value="" {% if not form_data.get('grade') %}selected{% endif %} disabled>اختر الصف</option>
+                <option value="الصف الأول الثانوي" {% if form_data.get('grade') == 'الصف الأول الثانوي' %}selected{% endif %}>الصف الأول الثانوي</option>
+                <option value="الصف الثاني الثانوي" {% if form_data.get('grade') == 'الصف الثاني الثانوي' %}selected{% endif %}>الصف الثاني الثانوي</option>
+                <option value="الصف الثالث الثانوي" {% if form_data.get('grade') == 'الصف الثالث الثانوي' %}selected{% endif %}>الصف الثالث الثانوي</option>
+            </select>
+        </div>
+
+        <div class="form-group" id="branch-group-register" style="display: none;">
+            <label for="branch">الشعبة</label>
+            <select id="branch-select-register" name="branch">
+                </select>
+        </div>
+
+        <div class="form-group" id="password-group">
+            <label for="password">كلمة السر</label>
+            <div class="password-wrapper">
+                <input type="password" id="password" name="password" required>
+                <span class="toggle-password">👁️</span>
+            </div>
+        </div>
+        <div class="form-group" id="confirm_password-group">
+            <label for="confirm_password">تأكيد كلمة السر</label>
+            <div class="password-wrapper">
+                <input type="password" id="confirm_password" name="confirm_password" required>
+                <span class="toggle-password">👁️</span>
+            </div>
+        </div>
+        <button type="submit" class="submit-btn">إنشاء</button>
+    </form>
+    <div class="register-link">
+        <p>لديك حساب بالفعل؟ <a href="{{ url_for('login') }}">تسجيل الدخول</a></p>
+    </div>
+</div>
+{% endblock %}

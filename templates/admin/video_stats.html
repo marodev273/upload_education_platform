@@ -1,0 +1,36 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+  <h2>سجل تفاعل الفيديو: {{ video.title }}</h2>
+  <p>الكورس: <strong>{{ video.course.title }}</strong></p>
+
+  {% if watch_logs %}
+    <table class="table table-striped table-bordered">
+      <thead>
+        <tr>
+          <th>الطالب</th>
+          <th>عدد المشاهدات</th>
+          <th>أقصى نسبة مشاهدة</th>
+          <th>آخر مشاهدة</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in watch_logs %}
+          <tr>
+            <td>{{ log.user.full_name }}</td>
+            <td>{{ log.watch_count }}</td>
+            <td>{{ log.max_progress }}%</td>
+            <td>{{ log.last_watched.strftime('%Y-%m-%d %H:%M') }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="alert alert-info">
+      لا توجد سجلات مشاهدة لهذا الفيديو حتى الآن.
+    </div>
+  {% endif %}
+  
+  {# --- تم التصحيح هنا --- #}
+  <a href="{{ url_for('video.index_view') }}" class="btn btn-primary">العودة إلى قائمة الفيديوهات</a>
+{% endblock %}
