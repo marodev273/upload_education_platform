@@ -1,40 +1,47 @@
 services:
-  # خدمة الويب لتطبيق Flask
+  # 1. خدمة Redis لـ Celery
+  - type: redis
+    name: celery-redis
+    plan: free # استخدم الطبقة المجانية
+
+  # 2. خدمة الويب لتطبيق Flask
   - type: web
-    name: education-platform
+    name: education-platform-web
     env: python
+    plan: free # استخدم الطبقة المجانية
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn wsgi:app"
+    startCommand: "gunicorn app:app"
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0 # يمكنك تغييره لإصدار بايثون الذي تستخدمه
       - key: DATABASE_URL
-        fromDatabase:
-          name: education-db
-          property: connectionString
+        sync: false # سيتم إضافته يدويًا من Supabase
       - key: REDIS_URL
         fromService:
           type: redis
           name: celery-redis
           property: connectionString
       - key: SECRET_KEY
-        generateValue: true # سيقوم Render بإنشاء قيمة عشوائية آمنة
+        generateValue: true
       - key: CLOUDINARY_CLOUD_NAME
-        value: dhu8sbqml # القيمة من ملف .env
+        value: dhu8sbqml
       - key: CLOUDINARY_API_KEY
-        value: 246772366114445 # القيمة من ملف .env
+        value: 246772366114445
       - key: CLOUDINARY_API_SECRET
-        sync: false # مهم: لا تضع القيم السرية مباشرة هنا
+        sync: false # سيتم إضافته يدويًا
 
-  # خدمة العامل لتشغيل Celery
+  # 3. خدمة العامل لتشغيل Celery
   - type: worker
     name: celery-worker
     env: python
+    plan: free # استخدم الطبقة المجانية
     buildCommand: "pip install -r requirements.txt"
     startCommand: "celery -A celery_worker.celery worker --loglevel=info"
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
       - key: DATABASE_URL
-        fromDatabase:
-          name: education-db
-          property: connectionString
+        sync: false
       - key: REDIS_URL
         fromService:
           type: redis
@@ -46,12 +53,3 @@ services:
         value: 246772366114445
       - key: CLOUDINARY_API_SECRET
         sync: false
-
-databases:
-  # قاعدة بيانات PostgreSQL من Supabase (سنقوم بربطها يدوياً)
-  - name: education-db
-    ipAllowList: [] # اتركها فارغة للوصول من أي مكان
-
-# خدمة Redis لـ Celery
-- type: redis
-  name: celery-redis
